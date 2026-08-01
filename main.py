@@ -54,7 +54,7 @@ def run_scheduled_booking():
     targets = Config.get_targets()
 
     notifier = TelegramNotifier()
-    notifier.send_message(f"🏋️‍♂️ *Coach Vicen:* Hola Álex... jeje. Voy a abrir pista para el *{target_date.strftime('%d/%m/%Y')}* a las *{Config.TARGET_TIME}h* jeje. ¡Dale duro al WOD! 🔥")
+    notifier.send_message(f"🏋️‍♂️ *Coach Vicen:* Hola... jeje. Voy a abrir pista para el *{target_date.strftime('%d/%m/%Y')}* a las *{Config.TARGET_TIME}h* jeje. ¡Dale duro al WOD! 🔥")
 
     client = AimharderClient()
     process_targets_for_date(client, target_date, targets, dry_run=False)
@@ -69,7 +69,7 @@ def handle_week(targets: List[BookingTarget], dry_run: bool = False):
     
     notifier = TelegramNotifier()
     vicen_intro = (
-        "🤖 *Coach Vicen Bot:* Hola Álex... jeje 🏋️‍♂️\n\n"
+        "🤖 *Coach Vicen Bot:* Hola... jeje 🏋️‍♂️\n\n"
         "Bueno, voy a ir reservándote las clases de la semana a las 17:30h jeje. "
         "Prepara las muñequeras y calienta bien los hombros que se viene WOD sabroso jeje...\n\n"
         "🚀 *Iniciando reservas de la semana...*"
@@ -124,7 +124,7 @@ def main():
         if not notifier.is_configured:
             logger.error("TELEGRAM_BOT_TOKEN o TELEGRAM_CHAT_ID no están configurados en .env")
             sys.exit(1)
-        ok = notifier.send_message("🤖 *Coach Vicen:* Hola Álex... jeje. ¡Probando las notificaciones de Telegram jeje! 🏋️‍♂️🔥")
+        ok = notifier.send_message("🤖 *Coach Vicen:* Hola... jeje. ¡Probando las notificaciones de Telegram jeje! 🏋️‍♂️🔥")
         if ok:
             logger.info("✅ Mensaje enviado con éxito a Telegram.")
         else:
@@ -174,7 +174,7 @@ def main():
         schedule.every().day.at("17:30:01").do(run_scheduled_booking)
 
         notifier = TelegramNotifier()
-        notifier.send_message(f"🤖 *Coach Vicen Bot Activado en Modo Daemon*\nHola Álex... jeje. Esperando diariamente a las 17:30h para meterte en clase jeje.")
+        notifier.send_message(f"🤖 *Coach Vicen Bot Activado en Modo Daemon*\nHola... jeje. Esperando diariamente a las 17:30h para meterte en clase jeje.")
 
         while True:
             schedule.run_pending()
