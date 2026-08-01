@@ -1,0 +1,23 @@
+# Archivos de configuración con secretos
+.env
+
+# Archivos de log
+*.log
+bot_reservas.log
+
+# Caché de Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# Entornos virtuales
+venv/
+env/
+.venv/
+
+# Archivos de sistema u de IDE
+.vscode/
+.idea/
+.DS_Store

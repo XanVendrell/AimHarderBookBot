@@ -1,0 +1,52 @@
+name: Bot de Reservas Aimharder
+
+on:
+  schedule:
+    # 17:30:00h en España (Madrid)
+    # Verano (CEST, UTC+2): 15:30 UTC -> '30 15 * * 0-4' (Domingo a Jueves UTC)
+    # Invierno (CET, UTC+1): 16:30 UTC -> '30 16 * * 0-4'
+    - cron: '30 15 * * 0-4'
+  workflow_dispatch:
+    inputs:
+      command_args:
+        description: 'Argumentos de ejecución (ej: --book, --week, --test)'
+        required: false
+        default: '--book'
+
+jobs:
+  run-booking:
+    name: Ejecutar Reserva Automática
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Obtener código del repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Instalar dependencias
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Ejecutar Bot Aimharder
+        env:
+          AIMHARDER_EMAIL: ${{ secrets.AIMHARDER_EMAIL }}
+          AIMHARDER_PASSWORD: ${{ secrets.AIMHARDER_PASSWORD }}
+          BOX_URL: ${{ secrets.BOX_URL || 'https://singularboxgranadaadaada.aimharder.com/' }}
+          BOX_ID: ${{ secrets.BOX_ID || '9221' }}
+          TARGET_TIME: ${{ secrets.TARGET_TIME || '17:30' }}
+          TARGET_CLASS_NAME: ${{ secrets.TARGET_CLASS_NAME || 'CrossFit (apta con experiencia)' }}
+          TARGETS: ${{ secrets.TARGETS || '[{"name": "CrossFit (apta con experiencia)", "time": "17:30"}]' }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            python main.py ${{ github.event.inputs.command_args }}
+          else
+            python main.py --book
+          fi
