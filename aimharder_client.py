@@ -1,3 +1,4 @@
+import os
 import logging
 from datetime import datetime
 from typing import Dict, List, Optional
@@ -196,6 +197,8 @@ class AimharderClient:
                                    f"🎟️ *Ticket ID:* {ticket_id}")
                     logger.info(success_msg.replace("*", ""))
                     self.notifier.send_message(success_msg)
+                    if os.path.exists("image.png"):
+                        self.notifier.send_photo("image.png", caption=f"🏋️‍♂️ *Coach Vicen:* ¡Reserva completada con éxito jeje!")
                     return True
                 elif state == -1:
                     msg = f"⚠️ La clase '{class_name}' a las {target_time} el {date_str} está completa."

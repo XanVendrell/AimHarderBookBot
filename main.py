@@ -1,3 +1,4 @@
+import os
 import argparse
 import logging
 import sys
@@ -53,7 +54,7 @@ def run_scheduled_booking():
     targets = Config.get_targets()
 
     notifier = TelegramNotifier()
-    notifier.send_message(f"⏰ *Bot Aimharder:* Procesando reservas programadas para el *{target_date.strftime('%d/%m/%Y')}*...")
+    notifier.send_message(f"🏋️‍♂️ *Coach Vicen:* Hola... jeje. Voy a abrir pista para el *{target_date.strftime('%d/%m/%Y')}* a las *{Config.TARGET_TIME}h* jeje. ¡Dale duro al WOD! 🔥")
 
     client = AimharderClient()
     process_targets_for_date(client, target_date, targets, dry_run=False)
@@ -63,6 +64,16 @@ def handle_week(targets: List[BookingTarget], dry_run: bool = False):
     logger.info("--- MODO RESERVA SEMANAL ---")
     today = datetime.now(LOCAL_TZ)
     
+    # Notificación graciosa al inicio roleando a Coach Vicen
+    notifier = TelegramNotifier()
+    vicen_intro = (
+        "🤖 *VicenBot:* Hola Álex... jeje 🏋️‍♂️\n\n"
+        "Bueno, voy a ir reservándote las clases de la semana jeje. "
+        "Calienta bien los hombros que se vienen WODs intensos jeje...\n\n"
+        "🚀 *Iniciando reservas de la semana...*"
+    )
+    notifier.send_message(vicen_intro)
+
     # Calcular la fecha del Lunes de la semana actual/siguiente
     days_ahead = (0 - today.weekday()) % 7
     if days_ahead == 0 and today.hour >= 18:
@@ -76,6 +87,9 @@ def handle_week(targets: List[BookingTarget], dry_run: bool = False):
         logger.info(f"\n--- Procesando {target_date.strftime('%A %d/%m/%Y')} ---")
         process_targets_for_date(client, target_date, targets, dry_run=dry_run)
         time.sleep(1)
+
+    if os.path.exists("image.png"):
+        notifier.send_photo("image.png", caption="🏋️‍♂️ *Coach Vicen:* ¡Todas las reservas completadas jeje!")
 
 def main():
     setup_logging()
@@ -107,7 +121,7 @@ def main():
         if not notifier.is_configured:
             logger.error("TELEGRAM_BOT_TOKEN o TELEGRAM_CHAT_ID no están configurados en .env")
             sys.exit(1)
-        ok = notifier.send_message("🤖 *Prueba de Telegram desde Bot Aimharder*\n\n¡Las notificaciones están funcionando perfectamente!")
+        ok = notifier.send_message("🤖 *Coach Vicen:* Hola Álex... jeje. ¡Probando las notificaciones de Telegram jeje! 🏋️‍♂️🔥")
         if ok:
             logger.info("✅ Mensaje enviado con éxito a Telegram.")
         else:
@@ -153,7 +167,7 @@ def main():
         schedule.every().day.at("17:30:01").do(run_scheduled_booking)
 
         notifier = TelegramNotifier()
-        notifier.send_message(f"🤖 *Bot Aimharder Activado en Modo Daemon*\nObjetivos configurados: {[t.name + ' (' + t.time + 'h)' for t in targets]}")
+        notifier.send_message(f"🤖 *Coach Vicen Bot Activado en Modo Daemon*\nHola Álex... jeje. Esperando diariamente a las 17:30h para meterte en clase jeje.")
 
         while True:
             schedule.run_pending()
