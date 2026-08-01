@@ -19,11 +19,12 @@ class BookingTarget:
 class Config:
     EMAIL: str = (os.getenv("AIMHARDER_EMAIL") or "").strip()
     PASSWORD: str = (os.getenv("AIMHARDER_PASSWORD") or "").strip()
-    BOX_URL: str = (os.getenv("BOX_URL") or "https://singularboxgranadaadaada.aimharder.com/").strip().rstrip('/')
+    BOX_URL: str = (os.getenv("BOX_URL") or "https://aimharder.com").strip().rstrip('/')
     BOX_ID: str = (os.getenv("BOX_ID") or "9221").strip()
+    BOX_NAME: str = (os.getenv("BOX_NAME") or "CrossFit Box").strip()
     
     TARGET_TIME: str = (os.getenv("TARGET_TIME") or "17:30").strip()
-    TARGET_CLASS_NAME: str = (os.getenv("TARGET_CLASS_NAME") or "CrossFit (apta con experiencia)").strip()
+    TARGET_CLASS_NAME: str = (os.getenv("TARGET_CLASS_NAME") or "CrossFit").strip()
     
     _raw_days: str = (os.getenv("TARGET_DAYS") or "0,1,2,3,4").strip()
     TARGET_DAYS: List[int] = [int(d.strip()) for d in _raw_days.split(",") if d.strip().isdigit()]
@@ -35,10 +36,10 @@ class Config:
     @classmethod
     def get_targets(cls) -> List[BookingTarget]:
         """
-        Recupera la colección de objetivos de reserva definidos en .env.
+        Recupera la colección de objetivos de reserva definidos en .env o entorno.
         Soporta formato JSON en TARGETS con múltiples clases, horas y días.
         Ejemplo:
-        TARGETS=[{"name": "CrossFit (apta con experiencia)", "time": "17:30", "days": [0,1,2,3,4]}]
+        TARGETS=[{"name": "CrossFit", "time": "17:30", "days": [0,1,2,3,4]}]
         """
         raw_json = (os.getenv("TARGETS") or "").strip()
         if raw_json:
@@ -60,7 +61,7 @@ class Config:
 
     @classmethod
     def validate(cls) -> List[str]:
-        """Valida que las credenciales necesarias estén presentes."""
+        """Valida que las credenciales mínimas estén configuradas."""
         errors = []
         if not cls.EMAIL or cls.EMAIL == "tu_email@ejemplo.com":
             errors.append("Debes configurar AIMHARDER_EMAIL en el archivo .env o Secrets de GitHub")

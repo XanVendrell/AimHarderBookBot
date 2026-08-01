@@ -1,4 +1,3 @@
-import os
 import logging
 from datetime import datetime
 from typing import Dict, List, Optional
@@ -12,13 +11,14 @@ logger = logging.getLogger(__name__)
 DIAS_SEMANA = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
 
 class AimharderClient:
-    """Cliente HTTP optimizado para interactuar con la API REST privada de Aimharder."""
+    """Cliente HTTP agnóstico para la API REST privada de Aimharder."""
 
     LOGIN_URL = "https://aimharder.com/api/login"
     
     def __init__(self):
         self.box_url = Config.BOX_URL
         self.box_id = Config.BOX_ID
+        self.box_name = Config.BOX_NAME
         self.email = Config.EMAIL
         self.password = Config.PASSWORD
         self.notifier = TelegramNotifier()
@@ -35,7 +35,7 @@ class AimharderClient:
         self.user_name: Optional[str] = None
 
     def login(self) -> bool:
-        """Autentica contra la API REST de Aimharder y recupera las cookies de sesión."""
+        """Autentica contra la API REST de Aimharder y recupera la sesión del atleta."""
         logger.info("Iniciando sesión en la API de Aimharder...")
         payload = {
             "username": self.email,
@@ -54,12 +54,21 @@ class AimharderClient:
             if "error" in data:
                 err_msg = data["error"].get("message", "Error desconocido")
                 logger.error(f"Error de autenticación: {err_msg}")
-                self.notifier.send_message(f"❌ *Bot Aimharder:* Error de autenticación en la API ({err_msg}). Revisa .env.")
+                self.notifier.send_message(f"❌ *Bot Aimharder:* Error de autenticación en la API ({err_msg}). Revisa las credenciales.")
                 return False
 
             user_data = data.get("data", {}).get("userData", {})
             self.user_name = user_data.get("name", "Atleta")
-            logger.info(f"¡Sesión iniciada con éxito! Atleta: {self.user_name}, Box ID: {self.box_id}")
+            
+            # Recuperar el nombre del Box si está disponible en roles
+            roles = user_data.get("roles", [])
+            for r in roles:
+                gym = r.get("gym")
+                if gym:
+                    self.box_name = gym
+                    break
+
+            logger.info(f"¡Sesión iniciada con éxito! Atleta: {self.user_name}, Box: {self.box_name} (ID: {self.box_id})")
             return True
 
         except Exception as e:
@@ -153,7 +162,7 @@ class AimharderClient:
 
         # Verificar si ya está reservada previamente por el usuario
         if book_state in ("booked", "reserved", 1):
-            msg = f"ℹ️ La clase de las {target_time}h el {full_date_str} ('{class_name}') ya estaba reservada previamente."
+            msg = f"ℹ️ La clase '{class_name}' a las {target_time}h el {full_date_str} ya estaba reservada previamente."
             logger.info(msg)
             self.notifier.send_message(f"ℹ️ *Bot Aimharder:* {msg}")
             return True

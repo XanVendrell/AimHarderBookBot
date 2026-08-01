@@ -1,4 +1,3 @@
-import os
 import argparse
 import logging
 import sys
@@ -54,13 +53,10 @@ def run_scheduled_booking():
     targets = Config.get_targets()
 
     notifier = TelegramNotifier()
-    notifier.send_message(f"🏋️‍♂️ *Coach Vicen:* Hola... jeje. Voy a abrir pista para el *{target_date.strftime('%d/%m/%Y')}* a las *{Config.TARGET_TIME}h* jeje. ¡Dale duro al WOD! 🔥")
+    notifier.send_message(f"⏰ *Bot Aimharder:* Procesando reservas programadas para el *{target_date.strftime('%d/%m/%Y')}*...")
 
     client = AimharderClient()
     process_targets_for_date(client, target_date, targets, dry_run=False)
-
-    if os.path.exists("image.png"):
-        notifier.send_photo("image.png")
 
 def handle_week(targets: List[BookingTarget], dry_run: bool = False):
     """Procesa en lote todas las clases de la semana de Lunes a Viernes para la colección de objetivos."""
@@ -68,13 +64,7 @@ def handle_week(targets: List[BookingTarget], dry_run: bool = False):
     today = datetime.now(LOCAL_TZ)
     
     notifier = TelegramNotifier()
-    vicen_intro = (
-        "🤖 *Coach Vicen Bot:* Hola... jeje 🏋️‍♂️\n\n"
-        "Bueno, voy a ir reservándote las clases de la semana a las 17:30h jeje. "
-        "Prepara las muñequeras y calienta bien los hombros que se viene WOD sabroso jeje...\n\n"
-        "🚀 *Iniciando reservas de la semana...*"
-    )
-    notifier.send_message(vicen_intro)
+    notifier.send_message("🤖 *Bot Aimharder:* Iniciando el proceso de reserva semanal de clases...")
 
     # Calcular la fecha del Lunes de la semana actual/siguiente
     days_ahead = (0 - today.weekday()) % 7
@@ -90,14 +80,10 @@ def handle_week(targets: List[BookingTarget], dry_run: bool = False):
         process_targets_for_date(client, target_date, targets, dry_run=dry_run)
         time.sleep(1)
 
-    # Enviar la imagen SOLO al final de todo el proceso
-    if os.path.exists("image.png"):
-        notifier.send_photo("image.png")
-
 def main():
     setup_logging()
 
-    parser = argparse.ArgumentParser(description="Bot de Reserva Automática de Clases en Aimharder")
+    parser = argparse.ArgumentParser(description="Bot Agnóstico de Reserva Automática de Clases en Aimharder")
     parser.add_argument("--test", action="store_true", help="Realiza una simulación (Dry Run) sin realizar la reserva real")
     parser.add_argument("--book", action="store_true", help="Realiza la reserva real para los objetivos configurados")
     parser.add_argument("--week", action="store_true", help="Reserva toda la semana (Lunes a Viernes) para los objetivos configurados")
@@ -124,7 +110,7 @@ def main():
         if not notifier.is_configured:
             logger.error("TELEGRAM_BOT_TOKEN o TELEGRAM_CHAT_ID no están configurados en .env")
             sys.exit(1)
-        ok = notifier.send_message("🤖 *Coach Vicen:* Hola... jeje. ¡Probando las notificaciones de Telegram jeje! 🏋️‍♂️🔥")
+        ok = notifier.send_message("🤖 *Bot Aimharder:* ¡Notificaciones de Telegram configuradas correctamente!")
         if ok:
             logger.info("✅ Mensaje enviado con éxito a Telegram.")
         else:
@@ -148,8 +134,6 @@ def main():
             target_date = datetime.strptime(args.date, "%Y-%m-%d")
         client = AimharderClient()
         process_targets_for_date(client, target_date, targets, dry_run=True)
-        if os.path.exists("image.png"):
-            TelegramNotifier().send_photo("image.png")
         return
 
     # 4. Modo Reserva Directa (por fecha o por antelación de 5 días)
@@ -161,8 +145,6 @@ def main():
             target_date = get_target_date_for_booking(Config.DAYS_AHEAD)
         client = AimharderClient()
         process_targets_for_date(client, target_date, targets, dry_run=False)
-        if os.path.exists("image.png"):
-            TelegramNotifier().send_photo("image.png")
         return
 
     # 5. Modo Daemon / Programado
@@ -174,7 +156,7 @@ def main():
         schedule.every().day.at("17:30:01").do(run_scheduled_booking)
 
         notifier = TelegramNotifier()
-        notifier.send_message(f"🤖 *Coach Vicen Bot Activado en Modo Daemon*\nHola... jeje. Esperando diariamente a las 17:30h para meterte en clase jeje.")
+        notifier.send_message("🤖 *Bot Aimharder Activado en Modo Daemon*\nEsperando diariamente a las 17:30h para realizar las reservas automáticas.")
 
         while True:
             schedule.run_pending()

@@ -1,73 +1,61 @@
-# 🏋️‍♂️ Bot de Reservas Automáticas de CrossFit en Aimharder
+# 🏋️‍♂️ Bot Agnóstico de Reservas Automáticas de CrossFit en Aimharder
 
-Bot en Python optimizado mediante la **API REST nativa de Aimharder** para automatizar la reserva de clases en **Singular Box Granada**.
+Bot genérico y ligero escrito en Python optimizado mediante la **API REST privada de Aimharder** para automatizar la reserva de clases en cualquier centro deportivo o box de CrossFit.
 
 ---
 
-## 🎯 Características
-- ⚡ **Ultra Rápido:** API REST nativa (tiempos de respuesta < 1.5 segundos).
-- 🪶 **Sin Navegador:** Ligero, no requiere Chrome, Playwright ni interfaz gráfica.
-- 🎯 **Colección de Clases:** Configura múltiples clases, horarios y días en formato JSON.
-- 📱 **Telegram Bot:** Notificaciones instantáneas de reserva confirmada, ocupación y alertas.
-- ☁️ **GitHub Actions Native:** Despliegue automático en la nube sin necesidad de tener el ordenador encendido.
+## 🎯 Características Principales
+- ⚡ **Ultra Rápido:** Conexión directa a la API REST de Aimharder (tiempos de respuesta < 1.5 segundos).
+- 🪶 **Sin Navegador:** No requiere Chrome, Selenium ni Playwright. 100% ligero e inmune a cambios visuales de interfaz.
+- 🧩 **100% Agnóstico:** Funciona para **cualquier box**, **cualquier usuario** y **cualquier colección de clases**.
+- 📅 **Colección de Objetivos (JSON):** Define múltiples clases, horarios y días de la semana.
+- 📱 **Alertas por Telegram:** Notificaciones instantáneas de reserva confirmada, ocupación y avisos de apertura.
+- ☁️ **GitHub Actions Native:** Ejecución programada gratuita en la nube sin necesidad de tener un servidor ni el PC encendido.
 
 ---
 
 ## ☁️ Despliegue en GitHub Actions (Nube Gratuita)
 
-El bot está preparado para ejecutarse automáticamente todos los días a las **17:30:00h** en la nube de GitHub Actions sin coste.
-
-### 1. Subir el Proyecto a GitHub (Repositorio Privado)
-Por seguridad, crea un repositorio **PRIVADO** en GitHub y sube tu código:
-
-```bash
-git init
-git add .
-git commit -m "Initial commit - Bot Reservas Aimharder"
-git branch -M main
-git remote add origin https://github.com/tu_usuario/bot-reservas.git
-git push -u origin main
-```
+### 1. Clonar o Forkear este Repositorio
+Crea una copia del repositorio en tu cuenta de GitHub (recomendado como **Repositorio Privado** por seguridad).
 
 ### 2. Configurar los Secretos en GitHub (Secrets)
-Ve a tu repositorio en GitHub:
+En tu repositorio de GitHub, dirígete a:  
 👉 **Settings -> Secrets and variables -> Actions -> New repository secret**
 
-Añade los siguientes secretos:
+Añade los secretos con tus credenciales personales:
 
-| Nombre del Secret | Valor | Ejemplo |
+| Secret Name | Descripción | Ejemplo |
 | :--- | :--- | :--- |
-| `AIMHARDER_EMAIL` | Tu email de Aimharder | `tu_email@gmail.com` |
+| `AIMHARDER_EMAIL` | Tu correo registrado en Aimharder | `tu_email@ejemplo.com` |
 | `AIMHARDER_PASSWORD` | Tu contraseña de Aimharder | `TuPassword123` |
-| `TELEGRAM_BOT_TOKEN` | Token del Bot de Telegram | `8838968513:AAEH...` |
-| `TELEGRAM_CHAT_ID` | Tu ID de chat en Telegram | `500758526` |
-| `TARGETS` *(opcional)* | Colección JSON de objetivos | `[{"name": "CrossFit (apta con experiencia)", "time": "17:30"}]` |
-
-### 3. Ejecución Manual o Automática
-- **Automático:** Correrá solo de **Domingo a Jueves a las 17:30h** (hora de España), reservando las clases a 5 días vista (Lunes a Viernes).
-- **Manual:** Ve a la pestaña **Actions** en GitHub, selecciona **Bot de Reservas Aimharder**, pulsa en **Run workflow** y elige los argumentos (`--book`, `--week`, `--test`).
+| `TELEGRAM_BOT_TOKEN` | Token del Bot de Telegram | `123456789:ABC...` |
+| `TELEGRAM_CHAT_ID` | Tu ID de chat de Telegram | `987654321` |
+| `BOX_URL` *(opcional)* | URL del Box en Aimharder | `https://tubox.aimharder.com/` |
+| `BOX_ID` *(opcional)* | ID numérico del Box | `9221` |
+| `TARGETS` *(opcional)* | Colección JSON de clases y horarios | `[{"name": "CrossFit", "time": "17:30", "days": [0,1,2,3,4]}]` |
 
 ---
 
 ## ⚙️ Configuración Local (`.env`)
 
-Para ejecutarlo en tu ordenador localmente, edita el archivo `.env`:
+Para ejecutarlo localmente en tu ordenador, crea un archivo `.env` basado en `.env.example`:
 
 ```env
 # Credenciales de Aimharder
-AIMHARDER_EMAIL=xelavendrell@gmail.com
+AIMHARDER_EMAIL=tu_email@ejemplo.com
 AIMHARDER_PASSWORD=tu_contraseña
 
 # Configuración del Box
-BOX_URL=https://singularboxgranadaadaada.aimharder.com/
+BOX_URL=https://tubox.aimharder.com/
 BOX_ID=9221
 
-# Colección de Objetivos en JSON
-TARGETS=[{"name": "CrossFit (apta con experiencia)", "time": "17:30", "days": [0,1,2,3,4]}]
+# Colección de Objetivos en JSON (0=Lunes, 1=Martes, ..., 4=Viernes)
+TARGETS=[{"name": "CrossFit", "time": "17:30", "days": [0,1,2,3,4]}]
 
 # Configuración de Telegram
-TELEGRAM_BOT_TOKEN=8838968513:AAEH...
-TELEGRAM_CHAT_ID=500758526
+TELEGRAM_BOT_TOKEN=tu_bot_token
+TELEGRAM_CHAT_ID=tu_chat_id
 ```
 
 ---
@@ -75,18 +63,18 @@ TELEGRAM_CHAT_ID=500758526
 ## 💻 Uso Local del CLI (`main.py`)
 
 ```powershell
-# 1. Probar notificación de Telegram
+# 1. Probar notificaciones de Telegram
 python main.py --test-telegram
 
-# 2. Simulación sin reservar (Dry Run)
+# 2. Simulación de la semana (Dry Run sin reservar)
 python main.py --week --test
 
-# 3. Realizar reserva real de toda la semana (Lunes a Viernes)
+# 3. Reserva REAL de la semana completa (Lunes a Viernes)
 python main.py --week
 
-# 4. Realizar reserva real a 5 días vista
+# 4. Reserva REAL a 5 días vista
 python main.py --book
 
-# 5. Ejecución continua local (Daemon)
+# 5. Ejecución continua en segundo plano (Daemon)
 python main.py --daemon
 ```
