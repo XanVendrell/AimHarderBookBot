@@ -9,6 +9,8 @@ from notifier import TelegramNotifier
 
 logger = logging.getLogger(__name__)
 
+DIAS_SEMANA = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
+
 class AimharderClient:
     """Cliente HTTP optimizado para interactuar con la API REST privada de Aimharder."""
 
@@ -115,10 +117,12 @@ class AimharderClient:
         """
         target_time = target_time or Config.TARGET_TIME
         class_filter = target_class_name or Config.TARGET_CLASS_NAME
-        date_str = target_date.strftime("%d/%m/%Y")
+        
+        day_name = DIAS_SEMANA[target_date.weekday()]
+        full_date_str = f"{day_name} {target_date.strftime('%d/%m/%Y')}"
         day_compact = target_date.strftime("%Y%m%d")
         
-        logger.info(f"Procesando reserva API: '{class_filter}' a las {target_time} el {date_str} (Dry run: {dry_run})...")
+        logger.info(f"Procesando reserva API: '{class_filter}' a las {target_time} el {full_date_str} (Dry run: {dry_run})...")
 
         # 1. Login (si no se ha iniciado sesión previamente)
         if not self.user_name:
@@ -128,13 +132,13 @@ class AimharderClient:
         # 2. Obtener parrilla del día
         bookings = self.get_day_bookings(target_date)
         if not bookings:
-            logger.warning(f"No se recibieron clases del servidor para el día {date_str}.")
+            logger.warning(f"No se recibieron clases del servidor para el día {full_date_str}.")
             return False
 
         # 3. Filtrar la clase objetivo
         target_booking = self.find_target_class(bookings, target_time, class_filter)
         if not target_booking:
-            msg = f"ℹ️ La clase '{class_filter}' a las {target_time} no está programada para el día {date_str}."
+            msg = f"ℹ️ La clase '{class_filter}' a las {target_time} no está programada para el día {full_date_str}."
             logger.info(msg)
             return False
 
@@ -149,7 +153,7 @@ class AimharderClient:
 
         # Verificar si ya está reservada previamente por el usuario
         if book_state in ("booked", "reserved", 1):
-            msg = f"ℹ️ La clase de las {target_time} el {date_str} ('{class_name}') ya estaba reservada previamente."
+            msg = f"ℹ️ La clase de las {target_time}h el {full_date_str} ('{class_name}') ya estaba reservada previamente."
             logger.info(msg)
             self.notifier.send_message(f"ℹ️ *Bot Aimharder:* {msg}")
             return True
@@ -157,11 +161,9 @@ class AimharderClient:
         if dry_run:
             msg = (f"🧪 *[SIMULACIÓN (DRY RUN)]*\n\n"
                    f"🏋️‍♂️ *Clase:* {class_name}\n"
-                   f"📅 *Fecha:* {date_str} a las {target_time}\n"
-                   f"👤 *Atleta:* {self.user_name}\n"
+                   f"📅 *Fecha:* {full_date_str} a las {target_time}h\n"
                    f"👨‍🏫 *Entrenador:* {coach_name}\n"
-                   f"📊 *Ocupación:* {ocupation}/{capacity}\n"
-                   f"🆔 *ID Sesión:* {booking_id}")
+                   f"📊 *Ocupación:* {ocupation}/{capacity}")
             logger.info(msg.replace("*", ""))
             self.notifier.send_message(msg)
             return True
@@ -188,30 +190,25 @@ class AimharderClient:
                 
                 state = res_data.get("bookState")
                 if state in (1, 0):
-                    ticket_id = res_data.get("id", "N/A")
                     success_msg = (f"✅ *¡Reserva Confirmada!*\n\n"
                                    f"🏋️‍♂️ *Clase:* {class_name}\n"
-                                   f"📅 *Fecha:* {date_str} a las {target_time}\n"
-                                   f"👤 *Atleta:* {self.user_name}\n"
-                                   f"📍 *Box:* Singular Box Granada\n"
-                                   f"🎟️ *Ticket ID:* {ticket_id}")
+                                   f"📅 *Fecha:* {full_date_str} a las {target_time}h\n"
+                                   f"👨‍🏫 *Entrenador:* {coach_name}")
                     logger.info(success_msg.replace("*", ""))
                     self.notifier.send_message(success_msg)
-                    if os.path.exists("image.png"):
-                        self.notifier.send_photo("image.png", caption=f"🏋️‍♂️ *Coach Vicen:* ¡Reserva completada con éxito jeje!")
                     return True
                 elif state == -1:
-                    msg = f"⚠️ La clase '{class_name}' a las {target_time} el {date_str} está completa."
+                    msg = f"⚠️ La clase '{class_name}' a las {target_time}h el {full_date_str} está completa."
                     logger.warning(msg)
                     self.notifier.send_message(f"⚠️ *Bot Aimharder:* {msg}")
                     return False
                 elif state == -2:
-                    msg = f"⚠️ Has agotado tus reservas permitidas para el {date_str}."
+                    msg = f"⚠️ Has agotado tus reservas permitidas para el {full_date_str}."
                     logger.warning(msg)
                     self.notifier.send_message(f"⚠️ *Bot Aimharder:* {msg}")
                     return False
                 elif state == -12:
-                    msg = f"⏳ La reserva para el {date_str} a las {target_time} aún no está abierta (antelación máxima de 5 días / 120h)."
+                    msg = f"⏳ La reserva para el {full_date_str} a las {target_time}h aún no está abierta (antelación máxima de 5 días / 120h)."
                     logger.info(msg)
                     self.notifier.send_message(f"⏳ *Bot Aimharder:* {msg}")
                     return False
@@ -222,7 +219,7 @@ class AimharderClient:
                     return False
             else:
                 logger.error(f"Error HTTP en reserva: {resp.status_code} - {resp.text}")
-                self.notifier.send_message(f"❌ *Bot Aimharder Error:* Error al reservar clase {date_str} (HTTP {resp.status_code}).")
+                self.notifier.send_message(f"❌ *Bot Aimharder Error:* Error al reservar clase {full_date_str} (HTTP {resp.status_code}).")
                 return False
         except Exception as e:
             logger.error(f"Excepción enviando reserva: {e}", exc_info=True)

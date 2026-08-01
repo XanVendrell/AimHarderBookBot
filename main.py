@@ -54,22 +54,24 @@ def run_scheduled_booking():
     targets = Config.get_targets()
 
     notifier = TelegramNotifier()
-    notifier.send_message(f"🏋️‍♂️ *Coach Vicen:* Hola... jeje. Voy a abrir pista para el *{target_date.strftime('%d/%m/%Y')}* a las *{Config.TARGET_TIME}h* jeje. ¡Dale duro al WOD! 🔥")
+    notifier.send_message(f"🏋️‍♂️ *Coach Vicen:* Hola Álex... jeje. Voy a abrir pista para el *{target_date.strftime('%d/%m/%Y')}* a las *{Config.TARGET_TIME}h* jeje. ¡Dale duro al WOD! 🔥")
 
     client = AimharderClient()
     process_targets_for_date(client, target_date, targets, dry_run=False)
+
+    if os.path.exists("image.png"):
+        notifier.send_photo("image.png")
 
 def handle_week(targets: List[BookingTarget], dry_run: bool = False):
     """Procesa en lote todas las clases de la semana de Lunes a Viernes para la colección de objetivos."""
     logger.info("--- MODO RESERVA SEMANAL ---")
     today = datetime.now(LOCAL_TZ)
     
-    # Notificación graciosa al inicio roleando a Coach Vicen
     notifier = TelegramNotifier()
     vicen_intro = (
-        "🤖 *VicenBot:* Hola Álex... jeje 🏋️‍♂️\n\n"
-        "Bueno, voy a ir reservándote las clases de la semana jeje. "
-        "Calienta bien los hombros que se vienen WODs intensos jeje...\n\n"
+        "🤖 *Coach Vicen Bot:* Hola Álex... jeje 🏋️‍♂️\n\n"
+        "Bueno, voy a ir reservándote las clases de la semana a las 17:30h jeje. "
+        "Prepara las muñequeras y calienta bien los hombros que se viene WOD sabroso jeje...\n\n"
         "🚀 *Iniciando reservas de la semana...*"
     )
     notifier.send_message(vicen_intro)
@@ -88,8 +90,9 @@ def handle_week(targets: List[BookingTarget], dry_run: bool = False):
         process_targets_for_date(client, target_date, targets, dry_run=dry_run)
         time.sleep(1)
 
+    # Enviar la imagen SOLO al final de todo el proceso
     if os.path.exists("image.png"):
-        notifier.send_photo("image.png", caption="🏋️‍♂️ *Coach Vicen:* ¡Todas las reservas completadas jeje!")
+        notifier.send_photo("image.png")
 
 def main():
     setup_logging()
@@ -145,6 +148,8 @@ def main():
             target_date = datetime.strptime(args.date, "%Y-%m-%d")
         client = AimharderClient()
         process_targets_for_date(client, target_date, targets, dry_run=True)
+        if os.path.exists("image.png"):
+            TelegramNotifier().send_photo("image.png")
         return
 
     # 4. Modo Reserva Directa (por fecha o por antelación de 5 días)
@@ -156,6 +161,8 @@ def main():
             target_date = get_target_date_for_booking(Config.DAYS_AHEAD)
         client = AimharderClient()
         process_targets_for_date(client, target_date, targets, dry_run=False)
+        if os.path.exists("image.png"):
+            TelegramNotifier().send_photo("image.png")
         return
 
     # 5. Modo Daemon / Programado
