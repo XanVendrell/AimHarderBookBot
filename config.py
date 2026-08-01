@@ -30,17 +30,34 @@ class Config:
     TARGET_DAYS: List[int] = [int(d.strip()) for d in _raw_days.split(",") if d.strip().isdigit()]
     DAYS_AHEAD: int = int(os.getenv("DAYS_AHEAD") or "5")
     
+    TARGETS_FILE: str = "targets.json"
     TELEGRAM_BOT_TOKEN: str = (os.getenv("TELEGRAM_BOT_TOKEN") or "").strip()
     TELEGRAM_CHAT_ID: str = (os.getenv("TELEGRAM_CHAT_ID") or "").strip()
 
     @classmethod
     def get_targets(cls) -> List[BookingTarget]:
         """
-        Recupera la colección de objetivos de reserva definidos en .env o entorno.
-        Soporta formato JSON en TARGETS con múltiples clases, horas y días.
-        Ejemplo:
-        TARGETS=[{"name": "CrossFit", "time": "17:30", "days": [0,1,2,3,4]}]
+        Recupera la colección de objetivos de reserva.
+        Tiene prioridad el archivo local 'targets.json' si existe.
+        Sino, intenta leer del entorno 'TARGETS' en formato JSON.
         """
+        # 1. Intentar cargar desde targets.json si existe
+        if os.path.exists(cls.TARGETS_FILE):
+            try:
+                with open(cls.TARGETS_FILE, "r", encoding="utf-8") as f:
+                    items = json.load(f)
+                    targets = []
+                    for item in items:
+                        name = item.get("name", cls.TARGET_CLASS_NAME)
+                        time_val = item.get("time", cls.TARGET_TIME)
+                        days = item.get("days", cls.TARGET_DAYS)
+                        targets.append(BookingTarget(name, time_val, days))
+                    if targets:
+                        return targets
+            except Exception:
+                pass
+
+        # 2. Intentar cargar desde variable de entorno TARGETS
         raw_json = (os.getenv("TARGETS") or "").strip()
         if raw_json:
             try:
@@ -60,6 +77,35 @@ class Config:
         return [BookingTarget(cls.TARGET_CLASS_NAME, cls.TARGET_TIME, cls.TARGET_DAYS)]
 
     @classmethod
+    def save_targets(cls, targets: List[BookingTarget]) -> bool:
+        """Guarda la lista de objetivos en el archivo targets.json."""
+        try:
+            data = [{"name": t.name, "time": t.time, "days": t.days} for t in targets]
+            with open(cls.TARGETS_FILE, "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=2, ensure_ascii=False)
+            return True
+        except Exception:
+            return False
+
+    @classmethod
+    def add_target(cls, target: BookingTarget) -> List[BookingTarget]:
+        """Añade un nuevo objetivo y lo guarda."""
+        current = cls.get_targets()
+        current.append(target)
+        cls.save_targets(current)
+        return current
+
+    @classmethod
+    def delete_target_at(cls, index: int) -> bool:
+        """Elimina un objetivo por su índice 0-based y guarda el resultado."""
+        current = cls.get_targets()
+        if 0 <= index < len(current):
+            current.pop(index)
+            cls.save_targets(current)
+            return True
+        return False
+
+    @classmethod
     def validate(cls) -> List[str]:
         """Valida que las credenciales mínimas estén configuradas."""
         errors = []
@@ -70,3 +116,4 @@ class Config:
         if not cls.BOX_URL:
             errors.append("Debes configurar BOX_URL en el archivo .env o Secrets de GitHub")
         return errors
+

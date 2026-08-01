@@ -66,15 +66,36 @@ TELEGRAM_CHAT_ID=tu_chat_id
 # 1. Probar notificaciones de Telegram
 python main.py --test-telegram
 
-# 2. Simulación de la semana (Dry Run sin reservar)
+# 2. Ejecutar solo el servidor interactivo de comandos por Telegram
+python main.py --bot
+
+# 3. Modo Daemon (Servidor 24/7): Programador diario (17:30h) + Bot interactivo de Telegram
+python main.py --daemon
+
+# 4. Simulación de la semana (Dry Run sin reservar)
 python main.py --week --test
 
-# 3. Reserva REAL de la semana completa (Lunes a Viernes)
+# 5. Reserva REAL de la semana completa (Lunes a Viernes)
 python main.py --week
 
-# 4. Reserva REAL a 5 días vista
+# 6. Reserva REAL a 5 días vista
 python main.py --book
-
-# 5. Ejecución continua en segundo plano (Daemon)
-python main.py --daemon
 ```
+
+---
+
+## 🤖 Comandos Interactivos por Telegram
+
+Cuando ejecutas el bot con `--bot` o `--daemon`, puedes enviarle mensajes directamente desde tu chat de Telegram:
+
+| Comando | Descripción | Ejemplo |
+| :--- | :--- | :--- |
+| `/help` | Muestra la lista de comandos disponibles | `/help` |
+| `/targets` | Muestra tus clases y horarios objetivos configurados | `/targets` |
+| `/add <clase> <hora> <dias>` | Añade un nuevo objetivo (los días pueden ser letras o números) | `/add CrossFit 18:30 L,M,X,J,V` |
+| `/del <número>` | Elimina un objetivo por su número de lista | `/del 1` |
+| `/ver [fecha]` | Muestra la parrilla de clases, entrenadores y plazas de un día | `/ver hoy` o `/ver 05/08/2026` |
+| `/reservar [hora] [fecha]` | Fuerza la reserva inmediata de una clase | `/reservar 18:30 hoy` |
+| `/semana` | Lanza el proceso de reserva para toda la semana activa | `/semana` |
+| `/status` | Muestra el estado del bot y la conexión con Aimharder | `/status` |
+
