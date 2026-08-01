@@ -37,11 +37,11 @@ jobs:
         env:
           AIMHARDER_EMAIL: ${{ secrets.AIMHARDER_EMAIL }}
           AIMHARDER_PASSWORD: ${{ secrets.AIMHARDER_PASSWORD }}
-          BOX_URL: ${{ secrets.BOX_URL || 'https://singularboxgranadaadaada.aimharder.com/' }}
-          BOX_ID: ${{ secrets.BOX_ID || '9221' }}
-          TARGET_TIME: ${{ secrets.TARGET_TIME || '17:30' }}
-          TARGET_CLASS_NAME: ${{ secrets.TARGET_CLASS_NAME || 'CrossFit (apta con experiencia)' }}
-          TARGETS: ${{ secrets.TARGETS || '[{"name": "CrossFit (apta con experiencia)", "time": "17:30"}]' }}
+          BOX_URL: ${{ secrets.BOX_URL }}
+          BOX_ID: ${{ secrets.BOX_ID }}
+          TARGET_TIME: ${{ secrets.TARGET_TIME }}
+          TARGET_CLASS_NAME: ${{ secrets.TARGET_CLASS_NAME }}
+          TARGETS: ${{ secrets.TARGETS }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
