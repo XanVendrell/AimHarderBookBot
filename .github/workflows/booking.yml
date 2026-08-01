@@ -2,16 +2,16 @@ name: Bot de Reservas Aimharder
 
 on:
   schedule:
-    # 17:30:00h en España (Madrid)
-    # Verano (CEST, UTC+2): 15:30 UTC -> '30 15 * * 0-4' (Domingo a Jueves UTC)
-    # Invierno (CET, UTC+1): 16:30 UTC -> '30 16 * * 0-4'
-    - cron: '30 15 * * 0-4'
+    # Todos los domingos a las 17:31h España (CEST, UTC+2 -> 15:31 UTC)
+    - cron: '31 15 * * 0'
+  push:
+    branches: [ main ]
   workflow_dispatch:
     inputs:
       command_args:
-        description: 'Argumentos de ejecución (ej: --book, --week, --test)'
+        description: 'Argumentos de ejecución (ej: --week, --book, --test)'
         required: false
-        default: '--book'
+        default: '--week'
 
 jobs:
   run-booking:
@@ -48,5 +48,5 @@ jobs:
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             python main.py ${{ github.event.inputs.command_args }}
           else
-            python main.py --book
+            python main.py --week
           fi
