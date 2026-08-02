@@ -1,9 +1,9 @@
 name: Bot de Reservas Aimharder
 
 on:
-  schedule:
+  #schedule:
     # Todos los domingos a las 17:31h España (CEST, UTC+2 -> 15:31 UTC)
-    - cron: '31 15 * * 0'
+    #- cron: '31 15 * * 0'
   push:
     branches: [ main ]
   workflow_dispatch:
